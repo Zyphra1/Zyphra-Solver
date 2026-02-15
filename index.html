@@ -1,127 +1,290 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skyscraper Solver</title>
+<title>Skyscraper Solver Pro</title>
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  font-family: "Segoe UI", Arial;
+  background: background-color: #00000;
+  text-align: center;
+  padding: 20px;
 }
 
-/* กล่องหลัก */
 .container {
-    display: flex;
-    gap: 80px;
-    align-items: flex-start;
-}
-
-/* ฝั่งซ้าย */
-.left {
-    color: white;
-}
-
-.left h2 {
-    margin-bottom: 15px;
-}
-
-.left img {
-    width: 300px;
-    border-radius: 10px;
-}
-
-/* ฝั่งขวา */
-.solver-box {
-    background: #e0e0e0;
-    padding: 30px;
-    border-radius: 20px;
-    width: 420px;
-    text-align: center;
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  display: inline-block;
 }
 
 .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 50px);
-    gap: 8px;
-    justify-content: center;
-    margin: 20px 0;
+  margin: 20px auto;
+  display: inline-grid;
+  gap: 6px;
 }
 
-.grid input {
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    font-size: 18px;
-    border-radius: 8px;
-    border: 1px solid #aaa;
+input {
+  width: 44px;
+  height: 44px;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #dcdcdc;
+  transition: 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74,144,226,0.4);
+}
+
+/* remove spinner */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 5px;
+  padding: 10px 22px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin: 8px;
+  font-weight: bold;
 }
 
-.solve {
-    background: #4CAF50;
-    color: white;
+.solve-btn {
+  background: #4CAF50;
+  color: white;
 }
 
-.reset {
-    background: #f44336;
-    color: white;
+.reset-btn {
+  background: #f44336;
+  color: white;
 }
+
+select {
+  padding: 6px;
+  font-size: 15px;
+  border-radius: 6px;
+}
+
+/* 🎨 answer colors */
+.c1 { background: #e3f2fd; }
+.c2 { background: #e8f5e9; }
+.c3 { background: #fff3e0; }
+.c4 { background: #fce4ec; }
+.c5 { background: #ede7f6; }
 </style>
 </head>
 
 <body>
 
 <div class="container">
+  <h2>🏙️ Skyscraper Solver</h2>
 
-    <!-- ฝั่งซ้าย -->
-    <div class="left">
-        <h2>📖 วิธีใช้</h2>
-        <img src="howto.png" alt="วิธีทำ">
-    </div>
+  <label>Size:</label>
+  <select id="sizeSelect" onchange="buildUI()">
+    <option value="3">3×3</option>
+    <option value="4" selected>4×4</option>
+    <option value="5">5×5</option>
+  </select>
 
-    <!-- ฝั่งขวา -->
-    <div class="solver-box">
-        <h2>🏙️ Skyscraper Solver</h2>
+  <div id="puzzle"></div>
 
-        <div class="grid">
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-            <input>
-        </div>
-
-        <button class="solve">Solve</button>
-        <button class="reset" onclick="location.reload()">Reset</button>
-    </div>
-
+  <button class="solve-btn" onclick="solve()">Solve</button>
+  <button class="reset-btn" onclick="resetPuzzle()">Reset</button>
 </div>
 
+<script>
+
+// ---------- UI ----------
+function buildUI() {
+  const size = +sizeSelect.value;
+  puzzle.innerHTML = "";
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  grid.style.gridTemplateColumns = repeat(${size+2}, 50px);
+
+  function cell(id="", disabled=false) {
+    const i = document.createElement("input");
+    i.type = "number";
+    i.min = 0;
+    i.max = size;
+    i.id = id;
+    i.disabled = disabled;
+    return i;
+  }
+
+  for (let r=0;r<size+2;r++) {
+    for (let c=0;c<size+2;c++) {
+
+      if ((r===0||r===size+1)&&(c===0||c===size+1))
+        grid.appendChild(document.createElement("div"));
+
+      else if (r===0)
+        grid.appendChild(cell(top-${c-1}));
+
+      else if (r===size+1)
+        grid.appendChild(cell(bottom-${c-1}));
+
+      else if (c===0)
+        grid.appendChild(cell(left-${r-1}));
+
+      else if (c===size+1)
+        grid.appendChild(cell(right-${r-1}));
+
+      else
+        grid.appendChild(cell(grid-${r-1}-${c-1}, true));
+    }
+  }
+
+  puzzle.appendChild(grid);
+}
+
+function resetPuzzle() {
+  const size = +sizeSelect.value;
+
+  ["top","bottom","left","right"].forEach(t=>{
+    for (let i=0;i<size;i++)
+      document.getElementById(${t}-${i}).value="";
+  });
+
+  for (let r=0;r<size;r++)
+    for (let c=0;c<size;c++) {
+      const cell = document.getElementById(grid-${r}-${c});
+      cell.value="";
+      cell.className="";
+    }
+}
+
+// ---------- Solver ----------
+function visible(line) {
+  let max=0,count=0;
+  for (let h of line)
+    if (h>max){max=h;count++;}
+  return count;
+}
+
+function checkPartial(line, clue) {
+  if (!clue) return true;
+  let max=0,count=0;
+  for (let h of line)
+    if (h>max){max=h;count++;}
+  return count <= clue;
+}
+
+function validFull(line, left, right) {
+  return (!left || visible(line)===left) &&
+         (!right || visible([...line].reverse())===right);
+}
+
+function permutations(n) {
+  const nums=[...Array(n)].map((_,i)=>i+1);
+
+  function perm(a){
+    if(a.length<=1) return [a];
+    let res=[];
+    for(let i=0;i<a.length;i++){
+      let rest=perm(a.slice(0,i).concat(a.slice(i+1)));
+      for(let r of rest)
+        res.push([a[i],...r]);
+    }
+    return res;
+  }
+
+  return perm(nums);
+}
+
+function solve(){
+  const size=+sizeSelect.value;
+
+  const top=[],bottom=[],left=[],right=[];
+  for(let i=0;i<size;i++){
+    top.push(+document.getElementById(top-${i}).value||0);
+    bottom.push(+document.getElementById(bottom-${i}).value||0);
+    left.push(+document.getElementById(left-${i}).value||0);
+    right.push(+document.getElementById(right-${i}).value||0);
+  }
+
+  const perms = permutations(size);
+
+  const rowOptions =
+    left.map((_,i)=>
+      perms.filter(p=>validFull(p,left[i],right[i]))
+    );
+
+  const grid = Array(size);
+  const cols = Array.from({length:size},()=>[]);
+
+  function backtrack(r=0){
+
+    if(r===size){
+      for(let c=0;c<size;c++)
+        if(!validFull(cols[c],top[c],bottom[c]))
+          return false;
+      return true;
+    }
+
+    for(let row of rowOptions[r]){
+
+      let ok=true;
+
+      for(let c=0;c<size;c++){
+
+        if(cols[c].includes(row[c])){
+          ok=false; break;
+        }
+
+        const test=[...cols[c],row[c]];
+        if(!checkPartial(test,top[c])){
+          ok=false; break;
+        }
+      }
+
+      if(!ok) continue;
+
+      grid[r]=row;
+      for(let c=0;c<size;c++)
+        cols[c].push(row[c]);
+
+      if(backtrack(r+1)) return true;
+
+      for(let c=0;c<size;c++)
+        cols[c].pop();
+    }
+
+    return false;
+  }
+
+  if(!backtrack()){
+    alert("No solution found!");
+    return;
+  }
+
+  // 🎨 show result with colors
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      const cell=document.getElementById(grid-${r}-${c});
+      const val=grid[r][c];
+      cell.value=val;
+      cell.className=c${val};
+    }
+  }
+}
+
+buildUI();
+
+</script>
 </body>
 </html>
